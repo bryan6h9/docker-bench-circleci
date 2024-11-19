@@ -1,1 +1,67 @@
+version: 2.1
+
+jobs:
+  docker-bench:
+    docker:
+      - image: circleci/python:3.10
+    steps:
+      - setup_remote_docker:
+          version: 20.10.21
+
+      - checkout
+
+      - run:
+          name: Run Docker Bench Security
+          command: |
+            docker pull docker/docker-bench-security:latest
+            docker run --rm --net host \
+              --pid host --cap-add audit_control \
+              -v /etc:/etc \
+              -v /usr/bin/docker-containerd:/usr/bin/docker-containerd \
+              -v /usr/bin/runc:/usr/bin/runc \
+              docker/docker-bench-security
+
+  build-images:
+    docker:
+      - image: circleci/node:18
+    steps:
+      - setup_remote_docker:
+          version: 20.10.21
+
+      - checkout
+
+      - run:
+          name: Build Docker Images
+          command: docker-compose -f docker-compose.yml build
+
+      - run:
+          name: Push Docker Images to Docker Hub
+          command: |
+            echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+            docker-compose -f docker-compose.yml push
+
+  deploy:
+    docker:
+      - image: circleci/node:18
+    steps:
+      - setup_remote_docker:
+          version: 20.10.21
+
+      - checkout
+
+      - run:
+          name: Deploy Docker Stack
+          command: docker-compose -f docker-compose.yml up -d
+
+workflows:
+  version: 2
+  docker-bench-security-ci-cd:
+    jobs:
+      - docker-bench
+      - build-images:
+          requires:
+            - docker-bench
+      - deploy:
+          requires:
+            - build-images
 
