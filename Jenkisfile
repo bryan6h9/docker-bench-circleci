@@ -1,0 +1,44 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Clone Repository') {
+            steps {
+                // Limpia el espacio de trabajo en Jenkins
+                cleanWs()
+                // Clona el repositorio desde GitHub
+                git url: 'https://github.com/bryan6h9/docker-bench-circleci.git', branch: 'main'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo 'Build step goes here!'
+                // Aquí puedes agregar más comandos relacionados al proyecto
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo 'Testing step goes here!'
+                // Aquí puedes agregar pruebas específicas
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo 'Deployment step goes here!'
+                // Añade los pasos de despliegue aquí si aplica
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline completed successfully.'
+        }
+        failure {
+            echo 'Pipeline failed.'
+        }
+    }
+}
