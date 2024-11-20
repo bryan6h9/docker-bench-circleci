@@ -1,11 +1,15 @@
 pipeline {
     agent any
 
+    environment {
+        GITHUB_CREDENTIALS = credentials('b8307d31-69b3-4bb9-a592-2ecadfd0285b')  // Define las credenciales como variable de entorno
+    }
+
     stages {
         stage('Clone Repository') {
             steps {
                 cleanWs() // Limpia el espacio de trabajo
-                git url: 'https://github.com/bryan6h9/docker-bench-circleci.git', branch: 'main'
+                git credentialsId: "${GITHUB_CREDENTIALS}", url: 'https://github.com/bryan6h9/docker-bench-circleci.git', branch: 'main'
             }
         }
 
