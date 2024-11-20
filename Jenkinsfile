@@ -1,15 +1,11 @@
 pipeline {
     agent any
 
-    environment {
-        GITHUB_CREDENTIALS = credentials('b8307d31-69b3-4bb9-a592-2ecadfd0285b')  // Define las credenciales como variable de entorno
-    }
-
     stages {
         stage('Clone Repository') {
             steps {
                 cleanWs() // Limpia el espacio de trabajo
-                git credentialsId: "${GITHUB_CREDENTIALS}", url: 'https://github.com/bryan6h9/docker-bench-circleci.git', branch: 'main'
+                git url: 'https://github.com/bryan6h9/docker-bench-circleci.git', branch: 'main'
             }
         }
 
@@ -17,50 +13,66 @@ pipeline {
             steps {
                 echo 'Building the project...'
                 // Simula una construcción o acción en el proyecto
+                sh 'echo "Simulating build..."'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                echo 'Running tests...'
+                // Simula pruebas (reemplaza con tus pruebas reales)
+                sh 'echo "Running tests..."'
+                // Simulando una prueba de éxito, deberías tener algo real aquí
             }
         }
 
         stage('Generate Metrics') {
             steps {
                 script {
-                    // Genera métricas simuladas
-                    def metrics = [
-                        timestamp: new Date().toString(),
-                        repository: 'docker-bench-circleci',
-                        branch: 'main',
-                        buildStatus: 'success',
-                        testCoverage: 85,  // Convertido a número para generar gráfico
-                        buildDuration: 120 // Convertido a segundos para gráfico
-                    ]
-                    
-                    // Guarda las métricas en un archivo JSON
-                    writeJSON file: 'metrics.json', json: metrics
-                    
-                    // Genera datos para los gráficos (debe ser un archivo CSV o similar)
-                    def coverageData = """timestamp,coverage
-${new Date().toString()},${metrics.testCoverage}
-"""
-                    writeFile file: 'coverage.csv', text: coverageData
+                    // Obtener métricas reales
+                    def buildStatus = currentBuild.result ?: 'SUCCESS' // Estado del build (SUCCESS, FAILURE)
+                    def buildDuration = currentBuild.durationString // Duración de la construcción
+                    def testCoverage = '85%' // Aquí puedes integrar un análisis real, por ejemplo, con JaCoCo o Cobertura
 
-                    def durationData = """timestamp,duration
-${new Date().toString()},${metrics.buildDuration}
-"""
-                    writeFile file: 'duration.csv', text: durationData
+                    // Crear el HTML con las métricas reales
+                    def metricsHtml = """
+                        <html>
+                        <head>
+                            <title>Build Metrics</title>
+                        </head>
+                        <body style="background-color:#0a1929; color: #fff;">
+                            <h1 style="text-align:center; color: #00ffff;">Build Metrics</h1>
+                            <table border="1" style="width:100%; margin: 20px;">
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Repository</th>
+                                    <th>Branch</th>
+                                    <th>Build Status</th>
+                                    <th>Test Coverage</th>
+                                    <th>Build Duration</th>
+                                </tr>
+                                <tr>
+                                    <td>${new Date().toString()}</td>
+                                    <td>docker-bench-circleci</td>
+                                    <td>main</td>
+                                    <td>${buildStatus}</td>
+                                    <td>${testCoverage}</td>
+                                    <td>${buildDuration}</td>
+                                </tr>
+                            </table>
+                        </body>
+                        </html>
+                    """
+
+                    // Escribir el archivo HTML con las métricas
+                    writeFile file: 'build_metrics.html', text: metricsHtml
                 }
             }
         }
 
-        stage('Test') {
+        stage('Archive Metrics') {
             steps {
-                echo 'Running tests...'
-                // Aquí puedes integrar pruebas reales
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                echo 'Deploying the application...'
-                // Pasos de despliegue si aplica
+                archiveArtifacts artifacts: 'build_metrics.html', allowEmptyArchive: true
             }
         }
     }
@@ -68,27 +80,9 @@ ${new Date().toString()},${metrics.buildDuration}
     post {
         always {
             echo 'Pipeline completed. Archiving results...'
-            archiveArtifacts artifacts: 'metrics.json, coverage.csv, duration.csv', fingerprint: true
         }
         success {
             echo 'Pipeline completed successfully.'
-
-            // Genera gráficos con los datos de los CSV
-            plot(
-                title: 'Test Coverage Over Time',
-                style: 'line', 
-                data: [
-                    [file: 'coverage.csv', label: 'Coverage %', color: 'blue']
-                ]
-            )
-
-            plot(
-                title: 'Build Duration Over Time',
-                style: 'line', 
-                data: [
-                    [file: 'duration.csv', label: 'Build Duration (s)', color: 'green']
-                ]
-            )
         }
         failure {
             echo 'Pipeline failed.'
