@@ -23,37 +23,29 @@ pipeline {
         stage('Generate Metrics') {
             steps {
                 script {
-                    // Crea un archivo HTML con métricas simuladas
-                    def metricsHtml = '''
-                        <html>
-                        <head>
-                            <title>Build Metrics</title>
-                        </head>
-                        <body style="background-color:#0a1929; color: #fff;">
-                            <h1 style="text-align:center; color: #00ffff;">Build Metrics</h1>
-                            <table border="1" style="width:100%; margin: 20px;">
-                                <tr>
-                                    <th>Timestamp</th>
-                                    <th>Repository</th>
-                                    <th>Branch</th>
-                                    <th>Build Status</th>
-                                    <th>Test Coverage</th>
-                                    <th>Build Duration</th>
-                                </tr>
-                                <tr>
-                                    <td>${new Date().toString()}</td>
-                                    <td>docker-bench-circleci</td>
-                                    <td>main</td>
-                                    <td>success</td>
-                                    <td>85%</td>
-                                    <td>120s</td>
-                                </tr>
-                            </table>
-                        </body>
-                        </html>
-                    '''
-                    // Escribir el archivo HTML en el espacio de trabajo
-                    writeFile file: 'build_metrics.html', text: metricsHtml
+                    // Genera métricas simuladas
+                    def metrics = [
+                        timestamp: new Date().toString(),
+                        repository: 'docker-bench-circleci',
+                        branch: 'main',
+                        buildStatus: 'success',
+                        testCoverage: 85,  // Convertido a número para generar gráfico
+                        buildDuration: 120 // Convertido a segundos para gráfico
+                    ]
+                    
+                    // Guarda las métricas en un archivo JSON
+                    writeJSON file: 'metrics.json', json: metrics
+                    
+                    // Genera datos para los gráficos (debe ser un archivo CSV o similar)
+                    def coverageData = """timestamp,coverage
+${new Date().toString()},${metrics.testCoverage}
+"""
+                    writeFile file: 'coverage.csv', text: coverageData
+
+                    def durationData = """timestamp,duration
+${new Date().toString()},${metrics.buildDuration}
+"""
+                    writeFile file: 'duration.csv', text: durationData
                 }
             }
         }
@@ -76,11 +68,27 @@ pipeline {
     post {
         always {
             echo 'Pipeline completed. Archiving results...'
-            // Archivar el archivo HTML generado como artefacto
-            archiveArtifacts artifacts: 'build_metrics.html', allowEmptyArchive: true
+            archiveArtifacts artifacts: 'metrics.json, coverage.csv, duration.csv', fingerprint: true
         }
         success {
             echo 'Pipeline completed successfully.'
+
+            // Genera gráficos con los datos de los CSV
+            plot(
+                title: 'Test Coverage Over Time',
+                style: 'line', 
+                data: [
+                    [file: 'coverage.csv', label: 'Coverage %', color: 'blue']
+                ]
+            )
+
+            plot(
+                title: 'Build Duration Over Time',
+                style: 'line', 
+                data: [
+                    [file: 'duration.csv', label: 'Build Duration (s)', color: 'green']
+                ]
+            )
         }
         failure {
             echo 'Pipeline failed.'
