@@ -72,13 +72,8 @@ ${new Date().toString()},${metrics.buildDuration}
         }
         success {
             echo 'Pipeline completed successfully.'
-        }
-        failure {
-            echo 'Pipeline failed.'
-        }
 
-        // Usar Plot Plugin para generar gráficos
-        success {
+            // Genera gráficos con los datos de los CSV
             plot(
                 title: 'Test Coverage Over Time',
                 style: 'line', 
@@ -86,6 +81,7 @@ ${new Date().toString()},${metrics.buildDuration}
                     [file: 'coverage.csv', label: 'Coverage %', color: 'blue']
                 ]
             )
+
             plot(
                 title: 'Build Duration Over Time',
                 style: 'line', 
@@ -93,6 +89,9 @@ ${new Date().toString()},${metrics.buildDuration}
                     [file: 'duration.csv', label: 'Build Duration (s)', color: 'green']
                 ]
             )
+        }
+        failure {
+            echo 'Pipeline failed.'
         }
     }
 }
