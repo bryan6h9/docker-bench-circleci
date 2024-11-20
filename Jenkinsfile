@@ -23,17 +23,29 @@ pipeline {
         stage('Generate Metrics') {
             steps {
                 script {
-                    // Genera un archivo JSON con métricas simuladas
+                    // Genera métricas simuladas
                     def metrics = [
                         timestamp: new Date().toString(),
                         repository: 'docker-bench-circleci',
                         branch: 'main',
                         buildStatus: 'success',
-                        testCoverage: '85%',
-                        buildDuration: '120s'
+                        testCoverage: 85,  // Convertido a número para generar gráfico
+                        buildDuration: 120 // Convertido a segundos para gráfico
                     ]
                     
+                    // Guarda las métricas en un archivo JSON
                     writeJSON file: 'metrics.json', json: metrics
+                    
+                    // Genera datos para los gráficos (debe ser un archivo CSV o similar)
+                    def coverageData = """timestamp,coverage
+${new Date().toString()},${metrics.testCoverage}
+"""
+                    writeFile file: 'coverage.csv', text: coverageData
+
+                    def durationData = """timestamp,duration
+${new Date().toString()},${metrics.buildDuration}
+"""
+                    writeFile file: 'duration.csv', text: durationData
                 }
             }
         }
@@ -56,13 +68,31 @@ pipeline {
     post {
         always {
             echo 'Pipeline completed. Archiving results...'
-            archiveArtifacts artifacts: 'metrics.json', fingerprint: true
+            archiveArtifacts artifacts: 'metrics.json, coverage.csv, duration.csv', fingerprint: true
         }
         success {
             echo 'Pipeline completed successfully.'
         }
         failure {
             echo 'Pipeline failed.'
+        }
+
+        // Usar Plot Plugin para generar gráficos
+        success {
+            plot(
+                title: 'Test Coverage Over Time',
+                style: 'line', 
+                data: [
+                    [file: 'coverage.csv', label: 'Coverage %', color: 'blue']
+                ]
+            )
+            plot(
+                title: 'Build Duration Over Time',
+                style: 'line', 
+                data: [
+                    [file: 'duration.csv', label: 'Build Duration (s)', color: 'green']
+                ]
+            )
         }
     }
 }
