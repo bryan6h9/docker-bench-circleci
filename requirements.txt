@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 apimatic-core==0.2.15
 apimatic-core-interfaces==0.1.5
 apimatic-requests-client-adapter==0.1.6
@@ -16,3 +17,8 @@ setuptools==75.3.0
 six==1.16.0
 squareup==38.2.0.20241017
 urllib3==2.2.3
+=======
+flask==2.0.1
+requests==2.25.1
+pytest==6.2.4
+>>>>>>> bcf19999850b40d497a21def346d007a01eaeb1a

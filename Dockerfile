@@ -1,21 +1,24 @@
-# Usa una imagen base (por ejemplo, una imagen de Ubuntu o Alpine)
+# Usar una imagen base de Ubuntu
 FROM ubuntu:20.04
 
-# Instalar dependencias (si es necesario)
+# Actualizar e instalar dependencias necesarias
 RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
     curl \
     git \
     docker.io \
+    build-essential \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copiar tus archivos del repositorio al contenedor
-COPY . /app
+# Copiar el archivo requirements.txt al contenedor
+COPY requirements.txt /app/requirements.txt
 
 # Establecer el directorio de trabajo
 WORKDIR /app
 
-# Instalar las dependencias necesarias para tu aplicación
-RUN pip install -r requirements.txt  # O los comandos que correspondan
+# Instalar las dependencias de Python
+RUN pip3 install --no-cache-dir -r requirements.txt
 
-# Ejecutar el comando que desees cuando el contenedor inicie
-CMD ["python", "app.py"]
+# El resto de tu configuración...
