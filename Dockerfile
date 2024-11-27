@@ -1,14 +1,21 @@
-# Usar una imagen base de Ubuntu
-FROM ubuntu:latest
+# Usa una imagen base (por ejemplo, una imagen de Ubuntu o Alpine)
+FROM ubuntu:20.04
 
-# Instalar dependencias necesarias
-RUN apt-get update && apt-get install -y curl git
+# Instalar dependencias (si es necesario)
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    docker.io \
+    && rm -rf /var/lib/apt/lists/*
 
-# Configurar el directorio de trabajo
-WORKDIR /app
-
-# Copiar los archivos del proyecto al contenedor
+# Copiar tus archivos del repositorio al contenedor
 COPY . /app
 
-# Comando para ejecutar el contenedor (esto depende de lo que quieras hacer)
-CMD ["bash"]
+# Establecer el directorio de trabajo
+WORKDIR /app
+
+# Instalar las dependencias necesarias para tu aplicación
+RUN pip install -r requirements.txt  # O los comandos que correspondan
+
+# Ejecutar el comando que desees cuando el contenedor inicie
+CMD ["python", "app.py"]
