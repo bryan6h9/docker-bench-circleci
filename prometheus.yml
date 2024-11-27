@@ -6,7 +6,9 @@ scrape_configs:
     metrics_path: '/prometheus' # Nota la barra inicial aquí
     static_configs:
       - targets: ['localhost:8033']
-
-
+      
+  - job_name: 'docker-containers'
+    static_configs:
+      - targets: ['localhost:8080'] # cAdvisor expone métricas en este puerto
 
 
