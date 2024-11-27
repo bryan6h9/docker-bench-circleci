@@ -1,8 +1,16 @@
-# Usar una imagen de Python
-FROM python:3.9-slim
+# Usar una imagen base de Ubuntu
+FROM ubuntu:20.04
 
-# Actualizar apt-get e instalar dependencias necesarias para compilación
-RUN apt-get update && apt-get install -y build-essential libpq-dev
+# Actualizar e instalar dependencias necesarias
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    curl \
+    git \
+    docker.io \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copiar el archivo requirements.txt al contenedor
 COPY requirements.txt /app/requirements.txt
@@ -10,7 +18,7 @@ COPY requirements.txt /app/requirements.txt
 # Establecer el directorio de trabajo
 WORKDIR /app
 
-# Instalar las dependencias
-RUN pip install --no-cache-dir -r requirements.txt
+# Instalar las dependencias de Python
+RUN pip3 install --no-cache-dir -r requirements.txt
 
 # El resto de tu configuración...
