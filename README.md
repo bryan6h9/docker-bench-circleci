@@ -10,4 +10,4 @@ Este repositorio implementa un pipeline de CI/CD para ejecutar análisis de segu
 ## Instrucciones
 1. Clona el repositorio.
 2. Configura las variables de entorno en CircleCI.
-3. Disfruta del monitoreo y la seguridad de tu entorno Docker.
+3. Disfruta del monitoreo y la seguridad de tu entorno Docker..
