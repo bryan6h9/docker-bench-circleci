@@ -8,42 +8,44 @@ pipeline {
             }
         }
         
-        stage('Build') {
+        stage('Build Docker Image') {
             steps {
-                // Aquí agregarías los pasos para construir tu proyecto
-                echo 'Building project...'
-                sh './build.sh'  // Ejemplo de un script para construir el proyecto
+                echo 'Building Docker Image...'
+                sh '''
+                    docker build -t docker-bench-security-image .
+                '''
             }
         }
 
-        stage('Run Tests') {
+        stage('Run Docker Bench Security') {
             steps {
-                // Aquí agregarías los pasos para ejecutar tus pruebas
-                echo 'Running tests...'
-                sh './run_tests.sh'  // Ejemplo de un script para ejecutar pruebas
+                echo 'Running Docker Bench Security...'
+                sh '''
+                    docker run -it --network="host" --pid="host" --cap-add audit_control \
+                        -v /var/lib:/var/lib -v /var/run:/var/run -v /etc:/etc \
+                        -v /usr/bin:/usr/bin -v /usr/lib:/usr/lib \
+                        docker-bench-security-image > docker_bench_report.html
+                '''
             }
         }
 
         stage('Generate Metrics') {
             steps {
-                // Aquí puedes agregar el script o comandos que generen las métricas
                 echo 'Generating metrics...'
-                sh './generate_metrics.sh'  // Este es un ejemplo de cómo podrías generar métricas
+                sh './generate_metrics.sh'
             }
         }
 
-        stage('Archive Metrics') {
+        stage('Archive Metrics and Report') {
             steps {
-                // Aquí puedes archivar las métricas generadas para que estén disponibles después de la ejecución
-                echo 'Archiving metrics...'
-                archiveArtifacts artifacts: '**/metrics/*.json', allowEmptyArchive: true  // Ejemplo de archivos de métricas
+                echo 'Archiving metrics and report...'
+                archiveArtifacts artifacts: '**/metrics/*.json, docker_bench_report.html', allowEmptyArchive: true
             }
         }
     }
     
     post {
         always {
-            // Aquí puedes agregar acciones a ejecutar después de que se complete el pipeline, como enviar notificaciones
             echo 'Pipeline completed!'
         }
     }
